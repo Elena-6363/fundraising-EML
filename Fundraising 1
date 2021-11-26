@@ -15,7 +15,7 @@ contract FundRaising {
         endTime = block.timestamp + _timeLimit * 1 minutes;
     }
     
-    function add() payable public {
+    function donate() payable public {
         require(block.timestamp < endTime, "Fundraising is closed.");
         require(total < goal, "We reached a goal.");
         require(msg.value > 0, "You need to send some ether");
