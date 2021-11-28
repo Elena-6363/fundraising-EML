@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT 
+
+// 00000000000000000
 pragma solidity ^0.8.9;
 
 contract FundRaising {
@@ -9,29 +11,32 @@ contract FundRaising {
     
     mapping(address=>uint) donations;
     
-    constructor(uint _goal, uint _timeLimit)  {
+    constructor(uint _goal, uint _timeLimitinminutes)  {
         owner = payable(msg.sender);
         goal = _goal;
-        endTime = block.timestamp + _timeLimit * 1 minutes;
+        endTime = block.timestamp + _timeLimitinminutes * 1 minutes;
     }
     
     function donate() payable public {
-        require(block.timestamp < endTime, "Fundraising is closed.");
-        require(total < goal, "We reached a goal.");
-        require(msg.value > 0, "You need to send some ether");
+        require(block.timestamp < endTime, "Time is over, Fundraising is closed.");
+        require(total < goal, "We reached the goal.");
+        require(msg.value > 0, "You will send a value of zero, you need to send some ether");
         donations[msg.sender] += msg.value; 
         total += msg.value;
     }
     
+    // Once the fundraising came to an end, so that the amount required is collected, the fundraising owner can collect his/her donations
     function withdrawOwner() public {
-        require(payable(msg.sender) == owner, "You must be owner");
-        require(total >= goal, "Fundraising not closed yet");
+        require(payable(msg.sender) == owner, "You must be owner of the fundraising to withdraw it");
+        require(total >= goal, "Fundraising not closed yet, the expected amount is not collected yet");
         owner.transfer(address(this).balance);
     }
     
+    // If the fundraising doesn't get the required amount, the donators can withdraw their donations
+    // We don't have to remeber how much we gave. Just click withdraw
     function withdraw() public {
-        require(block.timestamp > endTime, "Fundraising not closed");
-        require(total < goal, "Can not withdraw when fundraising was successful");
+        require(block.timestamp > endTime, "The time is not over, the Fundraising not closed");
+        require(total < goal, "Can not withdraw when fundraising was successful, the expected amount is collected");
         uint amount = donations[msg.sender];
         total -= amount;
         donations[msg.sender] = 0;
