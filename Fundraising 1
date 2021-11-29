@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT 
 
 // 00000000000000000
+// I changed all the msg.sender to tx.origin because if this is sent from another smart contract we cannot see who sent the message
+
 pragma solidity ^0.8.9;
 
 //The uint are public, so we can observe them 
@@ -34,7 +36,7 @@ contract FundRaising {
         require(block.timestamp < endTime, "Time is over, Fundraising is closed.");
         require(total < goal, "We reached the goal.");
         require(msg.value > 0, "You will send a value of zero, you need to send some ether");
-        donations[msg.sender] += msg.value; 
+        donations[tx.origin] += msg.value; 
         total += msg.value;
     }
 
@@ -47,19 +49,20 @@ contract FundRaising {
     function withdraw() public {
         require(block.timestamp > endTime, "The time is not over, the Fundraising not closed");
         require(total < goal, "Can not withdraw when fundraising is successful, the expected amount is collected");
-        uint amount = donations[msg.sender];
+        uint amount = donations[tx.origin];
         total -= amount;
-        donations[msg.sender] = 0;
-        payable(msg.sender).transfer(amount);
+        donations[tx.origin] = 0;
+        payable(tx.origin).transfer(amount);
     }  
     //Once the fundraising came to an end, so that the amount required is collected.
     //The fundraising owner (so the one that sent it first) can collect his/her donations
     //To collect the donations, the goal fixed must be attained. 
     //The time must not be ended to withdraw the money. 
     function withdrawOwner() public {
-        require(payable(msg.sender) == beneficiary, "You must be owner of the fundraising to withdraw it");
+        require(payable(tx.origin) == beneficiary, "You must be owner of the fundraising to withdraw it");
         require(total >= goal, "Fundraising not closed yet, the expected amount is not collected yet");
         beneficiary.transfer(address(this).balance);
     }
-    
-}
+    //A function to see how much a donator spent in the fund.
+    function GetTheSumofDonations() public view returns (uint256)  {
+        return donations[tx.origin];
