@@ -7,7 +7,7 @@ pragma solidity ^0.8.9;
 //The adress who send the donation must be able to receive it --> payable
 //Immutable: we cannot change it after the deployment of the constructor 
 contract FundRaising {
-    address payable public immutable owner;
+    address payable public immutable beneficiary;
     uint public goal;
     uint public endTime;
     uint public total = 0;
@@ -20,8 +20,8 @@ contract FundRaising {
     //Owner: to know who send the transaction, automatic
     //Goal: we have to write it, how much money we hope to have with the fundraising
     //Endtime: we have to define it, how much time is the fundraising 
-    constructor(uint _goal, uint _timeLimitinminutes, address _owner)  {
-        owner = payable(_owner);
+    constructor(uint _goal, uint _timeLimitinminutes, address _beneficiary)  {
+        beneficiary = payable(_beneficiary);
         goal = _goal;
         endTime = block.timestamp + _timeLimitinminutes * 1 minutes;
     }
@@ -55,10 +55,11 @@ contract FundRaising {
     //Once the fundraising came to an end, so that the amount required is collected.
     //The fundraising owner (so the one that sent it first) can collect his/her donations
     //To collect the donations, the goal fixed must be attained. 
+    //The time must not be ended to withdraw the money. 
     function withdrawOwner() public {
-        require(payable(msg.sender) == owner, "You must be owner of the fundraising to withdraw it");
+        require(payable(msg.sender) == beneficiary, "You must be owner of the fundraising to withdraw it");
         require(total >= goal, "Fundraising not closed yet, the expected amount is not collected yet");
-        owner.transfer(address(this).balance);
+        beneficiary.transfer(address(this).balance);
     }
     
 }
