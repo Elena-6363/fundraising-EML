@@ -5,8 +5,9 @@ pragma solidity ^0.8.9;
 
 //The uint are public, so we can observe them 
 //The adress who send the donation must be able to receive it --> payable
+//Immutable: we cannot change it after the deployment of the constructor 
 contract FundRaising {
-    address payable owner;
+    address payable public immutable owner;
     uint public goal;
     uint public endTime;
     uint public total = 0;
@@ -19,11 +20,12 @@ contract FundRaising {
     //Owner: to know who send the transaction, automatic
     //Goal: we have to write it, how much money we hope to have with the fundraising
     //Endtime: we have to define it, how much time is the fundraising 
-    constructor(uint _goal, uint _timeLimitinminutes)  {
-        owner = payable(msg.sender);
+    constructor(uint _goal, uint _timeLimitinminutes, address _owner)  {
+        owner = payable(_owner);
         goal = _goal;
         endTime = block.timestamp + _timeLimitinminutes * 1 minutes;
     }
+
     //Donation function: to give money in the fund before the time is over and before a certain goal is reached 
     //The value of the donation must be higher than 0 
     //The values of the donations are compiled, so that we know for each message sender how much he gave and he can make multiple donations
@@ -35,7 +37,21 @@ contract FundRaising {
         donations[msg.sender] += msg.value; 
         total += msg.value;
     }
-    
+
+    // If the fundraising doesn't get the required amount, the donators can withdraw their donations
+    // We don't have to remeber how much we gave. Just click withdraw
+    // The time fixed to give the donations must be over 
+    // The goal of the donation must not be attained 
+    // All the donations from the message sender are substracted from the total 
+    // His or her donations are now 0 and the amount is transfered 
+    function withdraw() public {
+        require(block.timestamp > endTime, "The time is not over, the Fundraising not closed");
+        require(total < goal, "Can not withdraw when fundraising is successful, the expected amount is collected");
+        uint amount = donations[msg.sender];
+        total -= amount;
+        donations[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }  
     //Once the fundraising came to an end, so that the amount required is collected.
     //The fundraising owner (so the one that sent it first) can collect his/her donations
     //To collect the donations, the goal fixed must be attained. 
@@ -45,18 +61,4 @@ contract FundRaising {
         owner.transfer(address(this).balance);
     }
     
-    // If the fundraising doesn't get the required amount, the donators can withdraw their donations
-    // We don't have to remeber how much we gave. Just click withdraw
-    // The time fixed to give the donations must be over 
-    // The goal of the donation must not be attained 
-    // All the donations from the message sender are substracted from the total 
-    // His or her donations are now 0 and the amount is transfered 
-    function withdraw() public {
-        require(block.timestamp > endTime, "The time is not over, the Fundraising not closed");
-        require(total < goal, "Can not withdraw when fundraising was successful, the expected amount is collected");
-        uint amount = donations[msg.sender];
-        total -= amount;
-        donations[msg.sender] = 0;
-        payable(msg.sender).transfer(amount);
-    }
 }
