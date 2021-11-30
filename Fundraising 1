@@ -13,9 +13,12 @@ contract FundRaising {
     uint public goal;
     uint public endTime;
     uint public total = 0;
+    bool public hasEnded;
     
     // The storage, key -> value type. So the adress send some donation which is a uint 
     mapping(address=>uint) donations;
+
+    event Sent(address receiver, uint amount);
     
     //The constructor is a special function that is executed when the contract is deployed.
     //To initialize state variables of the contract. The ones we have at the beginning so: 
@@ -66,3 +69,16 @@ contract FundRaising {
     //A function to see how much a donator spent in the fund.
     function GetTheSumofDonations() public view returns (uint256)  {
         return donations[tx.origin];
+    }
+    // A function to see if the donation has come to an end 
+    // Either the donation has reached the total value or the time is over
+    function donationEnd() external{ //no reason to be called in the contract 
+        //1 check conditions 
+        require(!hasEnded, "Fundraising has ended"); 
+        //has ended set to false, otherwise function has ended otherwise no need to call it 
+        require(block.timestamp >= endTime || total >= goal, "Wait for auction to end "); 
+        //2 apply all internal state changes 
+        hasEnded=true;
+        emit Sent(beneficiary, total);
+    }
+}
