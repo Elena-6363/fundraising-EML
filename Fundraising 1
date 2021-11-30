@@ -14,6 +14,8 @@ contract FundRaising {
     uint public endTime;
     uint public total = 0;
     bool public hasEnded;
+    string private text1 = "Thank you for your Donation";
+    string private text2 = "You didn't spent anything";
     
     // The storage, key -> value type. So the adress send some donation which is a uint 
     mapping(address=>uint) donations;
@@ -80,5 +82,13 @@ contract FundRaising {
         //2 apply all internal state changes 
         hasEnded=true;
         emit Sent(beneficiary, total);
+    }
+    // A function to get a Thank You when somebody spent something and another message when nothing is spent
+     function  message() public view returns (string memory) {
+         if(donations[tx.origin]!=0){
+             return text1;
+             } else {
+                 return text2;
+         }   
     }
 }
